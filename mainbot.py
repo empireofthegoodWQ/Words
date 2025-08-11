@@ -1,0 +1,160 @@
+from aiogram import Bot, Dispatcher, types, F
+from aiogram.filters import Command
+from aiogram.enums import ParseMode
+from aiogram.client.default import DefaultBotProperties
+import asyncio
+
+from db.user.add_user import add_user
+from db.user.get_user_record import get_user_record
+
+from db.station.get_station_record import get_station_record
+from db.station.delete_station_record import delete_station_record
+
+from db.words.word_by_id import get_word_by_id
+
+from test import start_test_func
+from quiz import start_quiz_func
+from lesson import get_lesson_func
+from keyboards import menu, stop_continue_keyboard
+
+
+bot = Bot(token="7973448962:AAHWUGxWDmuoSqtMCGf0s9JfNnISP1b_N9k", default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+dp = Dispatcher()
+
+@dp.message(Command('start'))
+async def send_welcome(message: types.Message):
+    user = message.from_user.id
+    await message.reply("Привет! Я бот на aiogram!", reply_markup=menu)
+    
+    user_data = await get_user_record(user)
+    if user_data is None:
+        await add_user(user)
+
+@dp.message(F.text == 'Получить Урок')
+async def gs(message: types.Message):
+    user = message.from_user.id
+    user_station = await get_station_record(user)
+
+    if user_station is not None:
+        station = user_station['station']
+
+        if station not in ('test', 'exam'):
+            await get_lesson_func(bot, user)
+        return
+        
+    await get_lesson_func(bot, user)
+    
+
+@dp.message(F.text == 'Начать Игру')
+async def sq(message: types.Message):
+    user = message.from_user.id
+    user_station = await get_station_record(user)
+
+    if user_station is not None:
+        station = user_station['station']
+
+        if station == 'quiz':
+            await message.reply("Вы уже играете в игру!")
+        elif station in ('test', 'exam'):
+            await message.reply("Завершите игру что бы начать этот режим!")
+        return
+        
+    await start_quiz_func(bot, user)
+
+@dp.message(F.text == 'Пройти Тест')
+async def sq(message: types.Message):
+    user = message.from_user.id
+    user_station = await get_station_record(user)
+
+    if user_station is not None:
+        station = user_station['station']
+
+        if station == 'test':
+            await message.reply("Вы уже проходите тест!")
+        elif station in ('quiz', 'exam'):
+            await message.reply("Завершите игру что бы начать этот режим!")
+        return
+        
+    await start_test_func(bot, user)
+
+
+@dp.message(F.text)
+async def all_text(message: types.Message):
+    user = message.from_user.id
+
+    user_station = await get_station_record(user)
+    if user_station is None:
+        return
+
+    station = user_station['station']
+
+    if message.text == 'STOP':
+        if station == 'quiz':
+            await delete_station_record(user)
+            await message.answer("Привет! Я бот на aiogram!", reply_markup=menu)
+            return
+        if station in ('test', 'exam'):
+            await message.answer("Вы уверены? Тогда результат обнулиться!", reply_markup=stop_continue_keyboard)
+            return
+
+    if station == 'quiz':
+        word_translation = await get_word_by_id(user_station['word_id'], table='words')
+        if message.text == word_translation['translation']:
+            await message.reply(f'<b>Правильно!</b>', parse_mode=ParseMode.HTML)
+        else:
+            await message.reply(f'<b>Не правильно!</b> Правильный ответ: <b>{word_translation["translation"]}</b>', parse_mode=ParseMode.HTML)
+        await start_quiz_func(bot, message.from_user.id)
+    
+    elif station in ('test', 'exam'):
+        word_translation = await get_word_by_id(user_station['word_id'], 'words_test')
+        correct_answer = user_station['correct_answer']
+        incorrect_answer = user_station['incorrect_answer']
+
+        if message.text == word_translation['translation']:
+            await message.reply(f'<b>Правильно!</b>', parse_mode=ParseMode.HTML)
+            correct_answer += 1
+        else:
+            await message.reply(f'<b>Не правильно!</b> Правильный ответ: <b>{word_translation["translation"]}</b>', parse_mode=ParseMode.HTML)
+            incorrect_answer += 1
+        
+        #await update_station_data(user, 'test', correct_answer=correct_answer, incorrect_answer=incorrect_answer)
+
+        if station == 'test':
+            await start_test_func(bot, message.from_user.id)
+        else:
+            pass
+
+@dp.callback_query(lambda c: c.data == 'stop')
+async def stop_test_exam(callback: types.CallbackQuery):
+    user = callback.from_user.id
+    user_station = await get_station_record(user)
+
+    if user_station is None:
+        return
+    elif user_station['station'] == 'quiz': # нужно для того что бы оно уддаляло только тогда когда чел играет в тест или екзам
+        return
+    
+    await bot.delete_message(
+        chat_id=user,
+        message_id=callback.message.message_id
+    )    
+    await delete_station_record(user)
+    await bot.send_message(user, "Привет! Я бот на aiogram!", reply_markup=menu)
+
+    
+@dp.callback_query(lambda c: c.data == 'continuе')
+async def continue_test_exam(callback: types.CallbackQuery):
+    user = callback.from_user.id
+    await bot.send_message(user, "Привет! Я бот на aiogram!", reply_markup=menu)
+    
+    await bot.delete_message(
+        chat_id=user,
+        message_id=callback.message.message_id
+    )
+
+
+async def main():
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
