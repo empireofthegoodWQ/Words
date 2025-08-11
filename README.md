@@ -1,2 +1,2 @@
 # Words
-for learn languege
+For learn languege.
