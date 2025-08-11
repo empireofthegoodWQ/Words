@@ -1,4 +1,4 @@
-Структура Базы
+baza = """Структура Базы
 mysql> SHOW TABLES;
 +----------------+
 | Tables_in_Baza |
@@ -59,3 +59,4 @@ mysql> DESCRIBE words_test;
 4 rows in set (0.02 sec)
 
 mysql>
+"""
