@@ -1,7 +1,7 @@
 # Words
 For learn languege.
 Мужики я знаю структура моего гита говное полное я просто новичок не умею пользоваться гитом поймите.
-
+\`\`\`python
 Структура Базы
 mysql> SHOW TABLES;
 +----------------+
@@ -63,3 +63,4 @@ mysql> DESCRIBE words_test;
 4 rows in set (0.02 sec)
 
 mysql> 
+\`\`\`
