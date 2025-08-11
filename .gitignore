@@ -1,5 +1,8 @@
 # Object file
 *.o
-
+API.py
+/__pyache__
+TZBOT.txt
+db/db_config.py
 # Ada Library Information
 *.ali

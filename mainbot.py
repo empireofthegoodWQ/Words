@@ -17,8 +17,9 @@ from quiz import start_quiz_func
 from lesson import get_lesson_func
 from keyboards import menu, stop_continue_keyboard
 
+from API import __APIBOT__
 
-bot = Bot(token="7973448962:AAHWUGxWDmuoSqtMCGf0s9JfNnISP1b_N9k", default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+bot = Bot(token=__APIBOT__, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 
 @dp.message(Command('start'))
