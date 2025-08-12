@@ -6,7 +6,7 @@ async def add_user(
     telegram_id: int,
     level: int = 0,  # Значение по умолчанию
     lesson: int = 1,   # Значение по умолчанию
-    can_start_test: bool = False,  # Значение по умолчанию
+    can_start_test: bool = True,  # Значение по умолчанию
     can_start_exam: bool = False,   # Значение по умолчанию
     db_host: str = db_config[0],
     db_port: int = db_config[1],

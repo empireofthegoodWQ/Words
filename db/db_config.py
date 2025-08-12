@@ -1,1 +1,1 @@
-db_config = ["localhost", 3306, "user", "1234", "Baza"]
+db_config = ("localhost", 3306, "user", "1234", "Baza")

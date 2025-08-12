@@ -1,5 +1,6 @@
 from random import choice
 
+
 from db.user.get_user_record import get_user_record
 from db.user.update_user_record import update_user_record
 
@@ -13,8 +14,8 @@ from db.words.words_test_by_lesson import get_words_test_by_lesson
 from db.words.word_id import get_word_id
 
 
-from keyboards import menu, start_exam_keyboard
 from mixed_keyboard import mixed_answer_keyboard
+from keyboards import start_exam_keyboard, menu
 
 
 async def start_test_func(bot, user):
@@ -27,7 +28,7 @@ async def start_test_func(bot, user):
     
     word = choice(words_keys)
     word_translate = words[word]
-    word_id = await get_word_id(word, 'words_test')
+    word_id = await get_word_id(word_translate, 'words_test')
 
     user_station = await get_station_record(user)
 
@@ -48,15 +49,18 @@ async def start_test_func(bot, user):
                 reply_markup=menu
             )
             await update_user_record(user, lesson=lesson)
+
             if lesson > 0 and lesson % 3 == 0:
                 await bot.send_message(
                     user,
                     "Чтобы пройти дальше нужно пройти экзамен",
                     reply_markup=start_exam_keyboard
                 )
+                await update_user_record(user, can_start_exam=True, can_start_test=False)
+
             await delete_station_record(user)
             return
-        await update_station_record(user, word_id=word_id, correct_answer=correct_answer, incorrect_answer=incorrect_answer)
+        await update_station_record(user, word_id=word_id)
 
     keyboard = await mixed_answer_keyboard(word_translate, words_values)
     await bot.send_message(user, word, reply_markup=keyboard)

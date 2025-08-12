@@ -7,6 +7,7 @@ async def mixed_answer_keyboard(correct_ans, words_values):
         KeyboardButton(text=choice(words_values)),
         KeyboardButton(text=choice(words_values))
     ]
+    
     buttons = sample(buttons, len(buttons))
 
     return ReplyKeyboardMarkup(

@@ -2,27 +2,31 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
-import asyncio
+from asyncio import run
+
 
 from db.user.add_user import add_user
 from db.user.get_user_record import get_user_record
 
+from db.station.add_station_record import add_station_record
 from db.station.update_station_record import update_station_record
 from db.station.get_station_record import get_station_record
 from db.station.delete_station_record import delete_station_record
 
 from db.words.word_by_id import get_word_by_id
 
-from edu_modules.test import start_test_func
-from edu_modules.quiz import start_quiz_func
-from edu_modules.lesson import get_lesson_func
-from keyboards import menu, stop_continue_keyboard
+
+from exam import start_exam_func
+from test import start_test_func
+from quiz import start_quiz_func
+from lesson import get_lesson_func
+from keyboards import menu, stop_continue_keyboard, start_exam_keyboard
+
 
 from API import __APIBOT__
 
 bot = Bot(token=__APIBOT__, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
-''
 
 @dp.message(Command('start'))
 async def send_welcome(message: types.Message):
@@ -69,16 +73,20 @@ async def sq(message: types.Message):
 async def sq(message: types.Message):
     user = message.from_user.id
     user_station = await get_station_record(user)
+    user_data = await get_user_record(user)
+
+    if user_data['can_start_test'] == False:
+        await message.reply('Вам нужно пройти экзамен чтобы двигаться дальше', reply_markup=start_exam_keyboard)
+        return
 
     if user_station is not None:
         station = user_station['station']
-
         if station == 'test':
             await message.reply('Вы уже проходите тест!')
         elif station in ('quiz', 'exam'):
             await message.reply('Завершите игру что бы начать этот режим!')
-        return
         
+        return
     await start_test_func(bot, user)
 
 @dp.message(F.text == 'STOP')
@@ -95,7 +103,7 @@ async def stop_game(message: types.Message):
         if station == 'quiz':
             await delete_station_record(user)
             await message.answer('Привет! Я бот на aiogram!', reply_markup=menu)
-        if station in ('test', 'exam'):
+        elif station in ('test', 'exam'):
             await message.answer('Вы уверены? Тогда результат обнулиться!', reply_markup=stop_continue_keyboard)
         return
 
@@ -114,10 +122,12 @@ async def all_text(message: types.Message):
     if station == 'quiz':
         word_translation = await get_word_by_id(user_station['word_id'], table='words')
     elif station in ('test', 'exam'):
-        word_translation = await get_word_by_id(user_station['word_id'], 'words_test')
+        word_translation = await get_word_by_id(user_station['word_id'], table='words_test')
 
     correct_answer = user_station['correct_answer']
     incorrect_answer = user_station['incorrect_answer']
+
+    print(word_translation)
 
     if message.text == word_translation['translation']:
         await message.reply(f'<b>Правильно!</b>', parse_mode=ParseMode.HTML)
@@ -128,12 +138,30 @@ async def all_text(message: types.Message):
     
     if station == 'quiz':
         await start_quiz_func(bot, user)
-    else:
-        await update_station_record(user, station, correct_answer=correct_answer, incorrect_answer=incorrect_answer)
+    elif station in ('test', 'exam'):
+        await update_station_record(user, station=station, correct_answer=correct_answer, incorrect_answer=incorrect_answer)
         if station == 'test':
             await start_test_func(bot, user)
-        else:
-            pass
+        elif station == 'exam':
+            await start_exam_func(bot, user)
+
+@dp.callback_query(lambda c: c.data == 'start_exam')
+async def start_exam_callback(callback: types.CallbackQuery):
+    user = callback.from_user.id
+    user_data = await get_user_record(user)
+
+    await bot.delete_message(
+        chat_id=user,
+        message_id=callback.message.message_id,
+        request_timeout=1
+    )
+
+    if user_data['can_start_exam'] == False:
+        await bot.send_message(user, 'Привет! Я бот на aiogram!', reply_markup=menu)
+        return
+
+    await start_exam_func(bot, user)
+
 
 @dp.callback_query(lambda c: c.data == 'stop')
 async def stop_test_exam(callback: types.CallbackQuery):
@@ -148,7 +176,6 @@ async def stop_test_exam(callback: types.CallbackQuery):
     await bot.delete_message(
         chat_id=user,
         message_id=callback.message.message_id,
-        request_timeout=3
     )    
     await delete_station_record(user)
     
@@ -162,12 +189,10 @@ async def continue_test_exam(callback: types.CallbackQuery):
         chat_id=user,
         message_id=callback.message.message_id
     )
-    
-    await bot.send_message(user, 'Привет! Я бот на aiogram!', reply_markup=menu)
 
 
 async def main():
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    run(main())
