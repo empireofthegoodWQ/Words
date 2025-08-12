@@ -27,7 +27,7 @@ async def start_quiz_func(bot, user):
     if user_station is None:
         await add_station_record(user, 'quiz', word_id)
     else:
-        await update_station_record(user, 'quiz', word_id, 0, 0)
+        await update_station_record(user, station='quiz', word_id=word_id, correct_answer=0, incorrect_answer=0)
     
     keyboard = await mixed_answer_keyboard(word_translate, words_values)
     await bot.send_message(user, word, reply_markup=keyboard)

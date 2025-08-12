@@ -5,7 +5,7 @@ from db.db_config import db_config
 
 async def update_station_record(
     telegram_id: int,
-    station: str = None,
+    station,
     word_id: int | None = None,
     correct_answer: int | None = None,
     incorrect_answer: int | None = None,
@@ -48,9 +48,6 @@ async def update_station_record(
         async with conn.cursor() as cur:
             updates = []
             values = []
-            if station is not None:
-                updates.append("station = %s")
-                values.append(station)
 
             if word_id is not None:
                 updates.append("word_id = %s")

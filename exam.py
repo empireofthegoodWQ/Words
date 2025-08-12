@@ -67,7 +67,7 @@ async def start_exam_func(bot, user):
             return
         
 
-        await update_station_record(user, word_id=word_id,)
+        await update_station_record(user, station='exam', word_id=word_id,)
     
     keyboard = await mixed_answer_keyboard(word_translate, words_values)
     await bot.send_message(user, word, reply_markup=keyboard)

@@ -60,7 +60,7 @@ async def start_test_func(bot, user):
 
             await delete_station_record(user)
             return
-        await update_station_record(user, word_id=word_id)
+        await update_station_record(user, station='test', word_id=word_id)
 
     keyboard = await mixed_answer_keyboard(word_translate, words_values)
     await bot.send_message(user, word, reply_markup=keyboard)
