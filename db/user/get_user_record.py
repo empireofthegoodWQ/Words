@@ -60,6 +60,8 @@ async def get_user_record(
     except Exception as e:
         print(f"Произошла ошибка: {e}")
         return None
+    except:
+        pass
     finally:
         if conn:
             conn.close()

@@ -2,6 +2,7 @@
 *.o
 API.py
 /__pyache__
+txt_files/
 TZBOT.txt
 db/db_config.py
 # Ada Library Information
