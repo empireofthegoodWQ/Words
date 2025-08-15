@@ -33,11 +33,8 @@ async def start_exam_func(bot, user):
     words_values = tuple(words.values())
 
     word = choice(words_keys)
-    print(word)
     word_translate = words[word]
-    print(word_translate)
     word_id = await get_word_id(word_translate, 'words_test')
-    print(word_id)
 
     user_station = await get_station_record(user)
 
@@ -66,8 +63,8 @@ async def start_exam_func(bot, user):
             await delete_station_record(user)
             return
         
-
-        await update_station_record(user, station='exam', word_id=word_id,)
+        
+        await update_station_record(user, word_id=word_id)
     
     keyboard = await mixed_answer_keyboard(word_translate, words_values)
     await bot.send_message(user, word, reply_markup=keyboard)

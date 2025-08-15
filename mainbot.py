@@ -127,8 +127,6 @@ async def all_text(message: types.Message):
     correct_answer = user_station['correct_answer']
     incorrect_answer = user_station['incorrect_answer']
 
-    print(word_translation)
-
     if message.text == word_translation['translation']:
         await message.reply(f'<b>Правильно!</b>', parse_mode=ParseMode.HTML)
         correct_answer += 1
