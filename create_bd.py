@@ -2,15 +2,6 @@ import asyncio
 import aiomysql
 
 async def create_tables_async(db_host, db_user, db_password, db_name):
-    """
-    Асинхронно создает базу данных DB_bot (если не существует) и таблицы station, users, words и words_test в базе данных MySQL.
-
-    Args:
-        db_host (str): Хост базы данных (например, "localhost").
-        db_user (str): Имя пользователя базы данных.
-        db_password (str): Пароль пользователя базы данных.
-        db_name (str): Имя базы данных, по умолчанию "DB_bot".
-    """
     conn = None
     try:
         # Подключение к MySQL без указания базы данных (для создания БД)
@@ -30,9 +21,9 @@ async def create_tables_async(db_host, db_user, db_password, db_name):
             except aiomysql.MySQLError as e:
                 if e.args[0] == 1007:  # Check for 'database exists' error code
                     print(f"База данных '{db_name}' уже существует.")
+                    return
                 else:
                     raise  # Re-raise the exception if it's not the 'database exists' error
-
 
         # Закрываем соединение и создаем новое, указав созданную базу данных
         conn.close()  # Закрываем соединение
@@ -45,7 +36,6 @@ async def create_tables_async(db_host, db_user, db_password, db_name):
         )
 
         async with conn.cursor() as cur:
-
             # SQL-запросы для создания таблиц
             create_users_table_query = """
             CREATE TABLE users (
@@ -53,8 +43,8 @@ async def create_tables_async(db_host, db_user, db_password, db_name):
                 telegram_id BIGINT UNIQUE,
                 level INT,
                 lesson INT,
-                can_start_test BOOLEAN,  -- Используем BOOLEAN вместо TINYINT(1) для читабельности, но MySQL хранит его как TINYINT(1)
-                can_start_exam BOOLEAN  -- Используем BOOLEAN вместо TINYINT(1) для читабельности, но MySQL хранит его как TINYINT(1)
+                can_start_test BOOLEAN,
+                can_start_exam BOOLEAN
             );
             """
 
@@ -84,7 +74,7 @@ async def create_tables_async(db_host, db_user, db_password, db_name):
                     word_id INT,
                     correct_answer INT,
                     incorrect_answer INT,
-                    INDEX (word_id) -- Добавление индекса на поле word_id (создает внешний ключ, если необходимо)
+                    INDEX (word_id)
                 );
             """
 
@@ -94,24 +84,71 @@ async def create_tables_async(db_host, db_user, db_password, db_name):
             await cur.execute(create_words_test_table_query)
             await cur.execute(create_station_table_query)
 
-            await conn.commit()
-            print("Таблицы успешно созданы.")
+            # Добавляем записи в таблицу words
+            words_data = [
+                (1, 'доска', 'لَوْحٌ'),
+                (1, 'чернильница', 'مِحْبَرَةٌ'),
+                (2, 'полотенце', 'نَشَّافَةٌ'),
+                (2, 'линейка', 'مِسْطَرَةٌ'),
+                (3, 'это', 'هَٰذَا'),
+                (3, 'где?', 'أَيْنَ'),
+                (4, 'дай', 'هَاتِ'),
+                (4, 'книга', 'كِتَابٌ'),
+                (5, 'карандаш', 'قَلَمٌ'),
+                (5, 'брошюра', 'كُرَّاسٌ'),
+                (6, 'листок', 'وَرَقٌ'),
+                (6, 'перо', 'رِيشَةٌ'),
+                (7, 'возьми', 'خُذْ'),
+                (7, 'что?', 'مَا'),
+                (8, 'где ключ?', 'أَيْنَ الْمِفْتَاحُ؟'),
+                (8, 'где ключ?', 'أَيْنَ الْمِفْتَاحُ؟')
+            ]
+            
+            await cur.executemany(
+                "INSERT INTO words (lesson, word, translation) VALUES (%s, %s, %s)",
+                words_data
+            )
 
+            # Добавляем записи в таблицу words_test
+            words_test_data = [
+                (1, 'где доска?', 'أَيْنَ لَوْحٌ؟'),
+                (1, 'ты книга?', 'أَأَنْتَ كِتَابٌ؟'),
+                (2, 'кто это?', 'مَنْ هَذَا؟'),
+                (2, 'я учитель', 'أَنَا مُدَرِّسٌ'),
+                (3, 'почему нет?', 'لِمَاذَا لَا؟'),
+                (3, 'до свидания', 'إِلَى اللِّقَاءِ'),
+                (4, 'большое спасибо', 'شُكْرًا جَزِيلًا'),
+                (4, 'пожалуйста', 'مِنْ فَضْلِكَ'),
+                (5, 'сколько стоит?', 'كَمْ هَذَا؟'),
+                (5, 'это дорого', 'هَذَا غَالِي'),
+                (6, 'как дела?', 'كَيْفَ حَالُكَ؟'),
+                (6, 'все хорошо', 'بِخَيْرٍ'),
+                (7, 'который час?', 'كَمِ السَّاعَةُ؟'),
+                (7, 'семь часов', 'السَّاعَةُ سَابِعَةٌ'),
+                (8, 'где ключ?', 'أَيْنَ الْمِفْتَاحُ؟'),
+                (8, 'я устал', 'أَنَا مُتْعَبٌ')
+            ]
+            
+            await cur.executemany(
+                "INSERT INTO words_test (lesson, word, translation) VALUES (%s, %s, %s)",
+                words_test_data
+            )
+
+            await conn.commit()
+            print("Таблицы успешно созданы и заполнены данными.")
     except aiomysql.MySQLError as err:
         print(f"Ошибка: {err}")
     finally:
         if conn:
-            await conn.ensure_closed() # use ensure_closed instead of close
+            await conn.ensure_closed()
             print("Соединение с базой данных успешно закрыто.")
 
-# Пример использования функции:
 async def main():
     host = input("Enter the host address (default: localhost): ")
     db_host = host if host != "" else "localhost"
-    # Или другой хост, если база данных не на локальной машине
 
-    db_user = input("Username for database connection: ")  # Замените на ваше имя пользователя MySQL
-    db_password = input("Password: ")  # Замените на ваш пароль MySQL
+    db_user = input("Username for database connection: ")
+    db_password = input("Password: ")
 
     name = input("Database name (default: DB_Bot): ")
     db_name = name if name != "" else "DB_Bot"

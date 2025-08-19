@@ -1,10 +1,5 @@
-# Object file
-*.o
 .venv/
 API.py
-/__pycache__/
+**/__pycache__
 txt_files/
 TZBOT.txt
-db/db_config.py
-# Ada Library Information
-*.ali

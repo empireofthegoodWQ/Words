@@ -111,7 +111,6 @@ async def stop_game(message: types.Message):
 @dp.message(F.text)
 async def all_text(message: types.Message):
     user = message.from_user.id
-
     user_station = await get_station_record(user)
     
     if user_station is None:
@@ -147,6 +146,7 @@ async def all_text(message: types.Message):
 async def start_exam_callback(callback: types.CallbackQuery):
     user = callback.from_user.id
     user_data = await get_user_record(user)
+    user_station = await get_station_record(user)
 
     await bot.delete_message(
         chat_id=user,
@@ -154,8 +154,15 @@ async def start_exam_callback(callback: types.CallbackQuery):
         request_timeout=1
     )
 
+
     if user_data['can_start_exam'] == False:
-        await bot.send_message(user, 'Привет! Я бот на aiogram!', reply_markup=menu)
+        return
+    if user_station is not None:
+        station = user_station['station']
+        if station == 'exam':
+            await bot.send_message(user, 'Вы уже проходите эказамен!')
+        elif station in ('test', 'quiz'):
+            await bot.send_message(user, 'Завершите игру что бы начать этот режим!')
         return
 
     await start_exam_func(bot, user)
