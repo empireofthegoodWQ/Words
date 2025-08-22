@@ -85,8 +85,8 @@ async def sq(message: types.Message):
             await message.reply('Вы уже проходите тест!')
         elif station in ('quiz', 'exam'):
             await message.reply('Завершите игру что бы начать этот режим!')
-        
         return
+
     await start_test_func(bot, user)
 
 @dp.message(F.text == 'STOP')
@@ -173,11 +173,6 @@ async def stop_test_exam(callback: types.CallbackQuery):
     user = callback.from_user.id
     user_station = await get_station_record(user)
 
-    if user_station is None:
-        return
-    elif user_station['station'] == 'quiz': # нужно для того что бы оно уддаляло только тогда когда чел играет в тест или екзам
-        return
-    
     await bot.delete_message(
         chat_id=user,
         message_id=callback.message.message_id,
