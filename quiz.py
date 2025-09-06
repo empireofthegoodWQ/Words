@@ -21,7 +21,7 @@ async def start_quiz_func(bot, user):
     
     word = choice(words_keys)
     word_translate = words[word]
-    word_id = await get_word_id(word_translate, "words")
+    word_id = await get_word_id(word_translate, 'words')
 
     user_station = await get_station_record(user)
     if user_station is None:

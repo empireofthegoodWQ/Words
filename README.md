@@ -10,7 +10,7 @@
 
 **1. Создание виртуального окружения:**
 ```bash
-python3 -m venv venv
+python3 -m venv venv && source venv/bin/activate
 ```
 
 2. Установка зависимостей:
@@ -21,7 +21,7 @@ pip install -r requirements.txt
 3. Создание базы данных:
 •   Запустите этот скрипт один раз для создания базы данных с необходимой структурой таблиц.
 ```bash
-python3 create_bd.py
+python3 db/create_bd.py
 ```
 
 4. Настройка API ключа:
@@ -29,7 +29,7 @@ python3 create_bd.py
 •   Замените значение API на свой собственный ключ.
 
 ```bash
-nano mainbot.py
+nano API.py # Создайте переменную APIBOT и присвойте ей значение токена
 ```
 
 5. Запуск бота:

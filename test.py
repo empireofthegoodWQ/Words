@@ -38,10 +38,10 @@ async def start_test_func(bot, user):
         correct_answer = user_station['correct_answer']
         incorrect_answer = user_station['incorrect_answer']
         if incorrect_answer == 3:
-            await bot.send_message(user, 'Иди учи слова!')
+            await bot.send_message(user, 'Иди учи слова!', reply_markup=menu)
             await delete_station_record(user)
             return
-        if correct_answer == 1: #len(words_keys):# количество ответов совпадает с количеством вопросов
+        if correct_answer == int(len(words_keys)*1.5):# количество ответов совпадает с количеством вопросов
             lesson += 1
             await bot.send_message(
                 user,
@@ -53,7 +53,7 @@ async def start_test_func(bot, user):
             if lesson > 0 and lesson % 3 == 0:
                 await bot.send_message(
                     user,
-                    "Чтобы пройти дальше нужно пройти экзамен",
+                    'Чтобы пройти дальше нужно пройти экзамен',
                     reply_markup=start_exam_keyboard
                 )
                 await update_user_record(user, can_start_exam=True, can_start_test=False)

@@ -2,7 +2,7 @@ from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
-from asyncio import run
+import asyncio
 
 
 from db.user.add_user import add_user
@@ -23,9 +23,9 @@ from lesson import get_lesson_func
 from keyboards import menu, stop_continue_keyboard, start_exam_keyboard
 
 
-from API import __APIBOT__
+from API import APIBOT
 
-bot = Bot(token=__APIBOT__, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+bot = Bot(token=APIBOT, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 
 @dp.message(Command('start'))
@@ -172,27 +172,37 @@ async def start_exam_callback(callback: types.CallbackQuery):
 async def stop_test_exam(callback: types.CallbackQuery):
     user = callback.from_user.id
     user_station = await get_station_record(user)
+    await delete_station_record(user)
 
+    await asyncio.sleep(0.3)
     await bot.delete_message(
         chat_id=user,
         message_id=callback.message.message_id,
-    )    
-    await delete_station_record(user)
-    
+    )
+
     await bot.send_message(user, 'Привет! Я бот на aiogram!', reply_markup=menu)
 
     
 @dp.callback_query(lambda c: c.data == 'continuе')
 async def continue_test_exam(callback: types.CallbackQuery):
     user = callback.from_user.id
+    
+    await asyncio.sleep(0.6)
     await bot.delete_message(
         chat_id=user,
         message_id=callback.message.message_id
     )
+    
+    await asyncio.sleep(0.6)
+    await bot.delete_message(
+        chat_id=user,
+        message_id=callback.message.message_id-1
+    )
+
 
 
 async def main():
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
-    run(main())
+    asyncio.run(main())
