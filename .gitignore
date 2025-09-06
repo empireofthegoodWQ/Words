@@ -1,5 +1,10 @@
 .venv/
 API.py
-**/__pycache__
+__pycache__/
 txt_files/
 TZBOT.txt
+db/__pycache__/
+db/station/__pycache__/
+db/user/__pycache__/
+db/words/__pycache__/
+db/db_config.py

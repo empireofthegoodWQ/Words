@@ -147,8 +147,14 @@ async def main():
     host = input("Enter the host address (default: localhost): ")
     db_host = host if host != "" else "localhost"
 
-    db_user = input("Username for database connection: ")
-    db_password = input("Password: ")
+    db_user = input("Username for database connection (default: user): ")
+    db_user = db_user if db_user != "" else "user" 
+    
+    db_password = input("Password (default: 1234): ")
+    db_password = db_password if db_password != "" else "1234" 
+
+    with open("db/db_config.py", 'w') as file:
+        file.write(f'db_config = ("localhost", 3306, "{db_user}", "{db_password}", "DB_Bot")')
 
     name = input("Database name (default: DB_Bot): ")
     db_name = name if name != "" else "DB_Bot"
