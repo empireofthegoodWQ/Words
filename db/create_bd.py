@@ -17,10 +17,10 @@ async def create_tables_async(db_host, db_user, db_password, db_name):
             try:
                 # Создаем базу данных
                 await cur.execute(f'CREATE DATABASE {db_name}')
-                print(f'База данных '{db_name}' успешно создана.')
+                print(f'База данных "{db_name}" успешно создана.')
             except aiomysql.MySQLError as e:
                 if e.args[0] == 1007:  # Check for 'database exists' error code
-                    print(f'База данных '{db_name}' уже существует.')
+                    print(f'База данных "{db_name}" уже существует.')
                     return
                 else:
                     raise  # Re-raise the exception if it's not the 'database exists' error
